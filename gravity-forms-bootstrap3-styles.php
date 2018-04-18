@@ -1,9 +1,9 @@
 <?php
 /**
- * Gravity Forms Bootstrap Styles
+ * Gravity Forms Bootstrap 3 Styles
  *
- * Applies bootstrap classes to various common field types.
- * Requires Bootstrap to be in use by the theme.
+ * Applies Bootstrap 3 classes to various common field types.
+ * Requires Bootstrap 3 to be in use by the theme.
  *
  * Using this function allows use of Gravity Forms default CSS
  * in conjuction with Bootstrap (benefit for fields types such as Address).
@@ -44,9 +44,23 @@ function bootstrap_styles_for_gravityforms_fields($content, $field, $value, $lea
 	
 } // End bootstrap_styles_for_gravityforms_fields()
 
-add_filter("gform_submit_button", "form_submit_button", 10, 2);
-function form_submit_button($button, $form){
-    return "<button class='button btn btn-default' id='gform_submit_button_{$form["id"]}'><span>Submit</span></button>";
+// Update submit button class
+function form_submit_btn($button, $form){
+	$dom = new DOMDocument();
+    $dom->loadHTML( $button );
+    $input = $dom->getElementsByTagName( 'input' )->item(0);
+    $new_button = $dom->createElement( 'button' );
+    $new_button->appendChild( $dom->createTextNode( $input->getAttribute( 'value' ) ) );
+    $input->removeAttribute( 'value' );
+	$input->removeAttribute( 'class' );
+    foreach( $input->attributes as $attribute ) {
+        $new_button->setAttribute( $attribute->name, $attribute->value );
+    }
+	$new_button->setAttribute( 'class', 'btn btn-default');
+    $input->parentNode->replaceChild( $new_button, $input );
+
+    return $dom->saveHtml( $new_button );
 }
+add_filter('gform_submit_button','form_submit_btn',10,2);
 
 ?>
